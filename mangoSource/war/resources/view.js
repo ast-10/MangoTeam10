@@ -264,8 +264,9 @@ mango.view.watchList.setDataImpl = function(state) {
     if (state && $("p"+ state.id)) {
         var node;
         if (state.value != null) {
-            node = $("p"+ state.id +"Value");
-            node.innerHTML = state.value;
+            var truncValue = parseFloat(state.value).toFixed(2);
+      	    node = $("p" + state.id + "Value");
+      	    node.innerHTML = truncValue;
             dojo.html.addClass(node, "viewChangeBkgd");
             setTimeout('mango.view.watchList.safeRemoveClass("'+ node.id +'", "viewChangeBkgd")', 2000);
         }
@@ -319,8 +320,11 @@ mango.view.pointDetails.setPoint = function(pointId, componentId, value) {
 };
 
 mango.view.pointDetails.setData = function(state) {
-    if (state.value != null)
-        $("pointValue").innerHTML = state.value;
+    if (state.value != null){
+    	var truncValue = parseFloat(state.value).toFixed(2);
+    	$("pointValue").innerHTML = truncValue;
+  }
+        
     
     if (state.time != null)
         $("pointValueTime").innerHTML = state.time;
