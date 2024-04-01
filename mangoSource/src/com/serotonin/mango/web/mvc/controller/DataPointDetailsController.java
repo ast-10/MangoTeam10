@@ -45,12 +45,8 @@ import com.serotonin.mango.vo.permission.Permissions;
 import com.serotonin.util.StringUtils;
 
 public class DataPointDetailsController extends ParameterizableViewController {
-    @Override
-    protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
-            throws Exception {
-        Map<String, Object> model = new HashMap<String, Object>();
-        User user = Common.getUser(request);
 
+    private int extractDataPointId(HttpServletRequest request) {
         int id;
         DataPointDao dataPointDao = new DataPointDao();
         String idStr = request.getParameter("dpid");
@@ -65,15 +61,14 @@ public class DataPointDetailsController extends ParameterizableViewController {
         }
         else
             id = Integer.parseInt(idStr);
+        return id;
+    }
 
-        // Put the point in the model.
-        DataPointVO point = dataPointDao.getDataPoint(id);
+    private DataPointVO retrieveDataPoint(int id) {
+        return new DataPointDao().getDataPoint(id);
+    }
 
-        Permissions.ensureDataPointReadPermission(user, point);
-
-        model.put("point", point);
-
-        // Get the views for this user that contain this point.
+    private List<View> getUserViewsContainingPoint(User user, int id) {
         List<View> userViews = new ViewDao().getViews(user.getId());
         List<View> views = new LinkedList<View>();
         for (View view : userViews) {
@@ -81,9 +76,10 @@ public class DataPointDetailsController extends ParameterizableViewController {
             if (view.containsValidVisibleDataPoint(id))
                 views.add(view);
         }
-        model.put("views", views);
+        return views;
+    }
 
-        // Get the users that have access to this point.
+    private List<Map<String, Object>> getUsersWithAccessToPoint(DataPointVO point) {
         List<User> allUsers = new UserDao().getUsers();
         List<Map<String, Object>> users = new LinkedList<Map<String, Object>>();
         Map<String, Object> userData;
@@ -97,23 +93,19 @@ public class DataPointDetailsController extends ParameterizableViewController {
                 users.add(userData);
             }
         }
-        model.put("users", users);
+        return users;
+    }
 
-        // Determine whether the link to edit the point should be displayed
-        model.put("pointEditor", Permissions.hasDataSourcePermission(user, point.getDataSourceId()));
-
-        // Put the events in the model.
-        model.put("events", new EventDao().getEventsForDataPoint(id, user.getId()));
-
-        // Put the default history table count into the model. Default to 10.
+    private int getHistoryLimit(DataPointVO point) {
         int historyLimit = 10;
         if (point.getChartRenderer() instanceof TableChartRenderer)
             historyLimit = ((TableChartRenderer) point.getChartRenderer()).getLimit();
         else if (point.getChartRenderer() instanceof ImageFlipbookRenderer)
             historyLimit = ((ImageFlipbookRenderer) point.getChartRenderer()).getLimit();
-        model.put("historyLimit", historyLimit);
+        return historyLimit;
+    }
 
-        // Determine our image chart rendering capabilities.
+    private void setChartRenderingCapabilities(Map<String, Object> model, DataPointVO point) {
         if (ImageChartRenderer.getDefinition().supports(point.getPointLocator().getDataTypeId())) {
             // This point can render an image chart. Carry on...
             int periodType = Common.TimePeriods.DAYS;
@@ -126,10 +118,47 @@ public class DataPointDetailsController extends ParameterizableViewController {
             model.put("periodType", periodType);
             model.put("periodCount", periodCount);
         }
+    }
 
-        // Determine out flipbook rendering capabilities
+    private void setflipbookRenderingCapabilities(Map<String, Object> model, DataPointVO point){
         if (ImageFlipbookRenderer.getDefinition().supports(point.getPointLocator().getDataTypeId()))
             model.put("flipbookLimit", 10);
+
+    }
+
+    @Override
+    protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
+        Map<String, Object> model = new HashMap<String, Object>();
+        User user = Common.getUser(request);
+        int id = extractDataPointId(request);
+
+        // Put the point in the model.
+        DataPointVO point = retrieveDataPoint(id);
+
+        Permissions.ensureDataPointReadPermission(user, point);
+        model.put("point", point);
+
+        // Get the views for this user that contain this point.
+        model.put("views", getUserViewsContainingPoint(user, id));
+
+        // Get the users that have access to this point.
+        model.put("users", getUsersWithAccessToPoint(point));
+
+        // Determine whether the link to edit the point should be displayed
+        model.put("pointEditor", Permissions.hasDataSourcePermission(user, point.getDataSourceId()));
+
+        // Put the events in the model.
+        model.put("events", new EventDao().getEventsForDataPoint(id, user.getId()));
+
+        // Put the default history table count into the model. Default to 10.
+        model.put("historyLimit", getHistoryLimit(point));
+
+        // Determine our image chart rendering capabilities.
+        setChartRenderingCapabilities(model, point);
+
+        // Determine out flipbook rendering capabilities
+        setflipbookRenderingCapabilities(model, point);
 
         // Set the point in the session for the dwr.
         user.setEditPoint(point);
