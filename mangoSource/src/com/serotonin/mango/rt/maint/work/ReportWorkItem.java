@@ -89,7 +89,7 @@ public class ReportWorkItem implements WorkItem {
 
         // Start the report work item out of process.
         item.reportInstance = reportInstance;
-        Common.ctx.getBackgroundProcessing().addWorkItem(item);
+        item.addWorkItem(Common.ctx.getBackgroundProcessing());
 
         LOG.info("Queued report with id " + report.getId() + ", instance id " + reportInstance.getId());
     }

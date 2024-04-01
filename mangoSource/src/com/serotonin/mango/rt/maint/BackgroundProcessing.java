@@ -27,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.mango.Common;
-import com.serotonin.mango.rt.maint.work.WorkItem;
 import com.serotonin.util.ILifecycle;
 
 /**
@@ -45,32 +43,6 @@ public class BackgroundProcessing implements ILifecycle {
 
     private ThreadPoolExecutor mediumPriorityService;
     private ExecutorService lowPriorityService;
-
-    public void addWorkItem(final WorkItem item) {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                try {
-                    item.execute();
-                }
-                catch (Throwable t) {
-                    try {
-                        log.error("Error in work item", t);
-                    }
-                    catch (RuntimeException e) {
-                        t.printStackTrace();
-                    }
-                }
-            }
-        };
-
-        if (item.getPriority() == WorkItem.PRIORITY_HIGH)
-            Common.timer.execute(runnable);
-        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM)
-            mediumPriorityService.execute(runnable);
-        else {
-            lowPriorityService.execute(runnable);
-        }
-    }
 
     public int getMediumPriorityServiceQueueSize() {
         return mediumPriorityService.getQueue().size();

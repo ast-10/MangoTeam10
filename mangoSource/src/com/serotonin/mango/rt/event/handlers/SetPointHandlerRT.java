@@ -91,8 +91,8 @@ public class SetPointHandlerRT extends EventHandlerRT implements SetPointSource 
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getActiveAction());
 
         // Queue a work item to perform the set point.
-        Common.ctx.getBackgroundProcessing().addWorkItem(
-                new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value, evt.getActiveTimestamp()), this));
+        new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value, evt.getActiveTimestamp()), this).addWorkItem(
+                Common.ctx.getBackgroundProcessing());
     }
 
     @Override
@@ -141,8 +141,8 @@ public class SetPointHandlerRT extends EventHandlerRT implements SetPointSource 
         else
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getInactiveAction());
 
-        Common.ctx.getBackgroundProcessing().addWorkItem(
-                new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value, evt.getRtnTimestamp()), this));
+        new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value, evt.getRtnTimestamp()), this).addWorkItem(
+                Common.ctx.getBackgroundProcessing());
     }
 
     private void raiseFailureEvent(LocalizableMessage message, EventType et) {

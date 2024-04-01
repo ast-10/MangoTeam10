@@ -106,7 +106,7 @@ public class HttpImageDataSourceRT extends PollingDataSource {
 
         synchronized void addRetriever(ImageRetriever retriever) {
             retrievers.add(retriever);
-            Common.ctx.getBackgroundProcessing().addWorkItem(retriever);
+            retriever.addWorkItem(Common.ctx.getBackgroundProcessing());
         }
 
         synchronized void removeRetriever(ImageRetriever retriever) {

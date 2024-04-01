@@ -312,7 +312,7 @@ public class BACnetIPDataSourceRT extends PollingDataSource implements DeviceEve
         }
 
         for (RemoteDevice d : devicePoints.keySet())
-            Common.ctx.getBackgroundProcessing().addWorkItem(new DevicePoller(d, devicePoints.get(d), time));
+            new DevicePoller(d, devicePoints.get(d), time).addWorkItem(Common.ctx.getBackgroundProcessing());
     }
 
     class DevicePoller implements WorkItem {

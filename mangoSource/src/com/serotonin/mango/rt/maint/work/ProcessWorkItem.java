@@ -42,7 +42,7 @@ public class ProcessWorkItem implements WorkItem {
 
     public static void queueProcess(String command) {
         ProcessWorkItem item = new ProcessWorkItem(command);
-        Common.ctx.getBackgroundProcessing().addWorkItem(item);
+        item.addWorkItem(Common.ctx.getBackgroundProcessing());
     }
 
     final String command;
@@ -71,12 +71,12 @@ public class ProcessWorkItem implements WorkItem {
         InputReader out = new InputReader(process.getInputStream());
         InputReader err = new InputReader(process.getErrorStream());
 
-        bp.addWorkItem(out);
-        bp.addWorkItem(err);
+        out.addWorkItem(bp);
+        err.addWorkItem(bp);
 
         try {
             ProcessTimeout timeout = new ProcessTimeout(process, command);
-            bp.addWorkItem(timeout);
+            timeout.addWorkItem(bp);
 
             process.waitFor();
             out.join();

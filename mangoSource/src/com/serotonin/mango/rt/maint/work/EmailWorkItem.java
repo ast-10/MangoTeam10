@@ -63,7 +63,7 @@ public class EmailWorkItem implements WorkItem {
         item.content = content;
         item.postSendExecution = postSendExecution;
 
-        Common.ctx.getBackgroundProcessing().addWorkItem(item);
+        item.addWorkItem(Common.ctx.getBackgroundProcessing());
     }
 
     private InternetAddress fromAddress;

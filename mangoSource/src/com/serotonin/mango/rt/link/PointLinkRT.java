@@ -135,7 +135,7 @@ public class PointLinkRT implements DataPointListener, SetPointSource {
         }
 
         // Queue a work item to perform the update.
-        Common.ctx.getBackgroundProcessing().addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), newValue, this));
+        new SetPointWorkItem(vo.getTargetPointId(), newValue, this).addWorkItem(Common.ctx.getBackgroundProcessing());
         returnToNormal();
     }
 

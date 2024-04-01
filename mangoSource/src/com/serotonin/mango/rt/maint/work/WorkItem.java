@@ -18,6 +18,9 @@
  */
 package com.serotonin.mango.rt.maint.work;
 
+import com.serotonin.mango.Common;
+import com.serotonin.mango.rt.maint.BackgroundProcessing;
+
 /**
  * @author Matthew Lohbihler
  * 
@@ -43,4 +46,30 @@ public interface WorkItem {
     void execute();
 
     int getPriority();
+
+    default void addWorkItem(BackgroundProcessing backgroundProcessing) {
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    execute();
+                }
+                catch (Throwable t) {
+                    try {
+                        backgroundProcessing.log.error("Error in work item", t);
+                    }
+                    catch (RuntimeException e) {
+                        t.printStackTrace();
+                    }
+                }
+            }
+        };
+
+        if (getPriority() == PRIORITY_HIGH)
+            Common.timer.execute(runnable);
+        else if (getPriority() == PRIORITY_MEDIUM)
+            backgroundProcessing.mediumPriorityService.execute(runnable);
+        else {
+            backgroundProcessing.lowPriorityService.execute(runnable);
+        }
+    }
 }

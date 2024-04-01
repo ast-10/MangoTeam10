@@ -621,7 +621,7 @@ public class PointValueDao extends BaseDao {
                     instances.add(bwb);
                     INSTANCES_MONITOR.setValue(instances.size());
                     try {
-                        Common.ctx.getBackgroundProcessing().addWorkItem(bwb);
+                        bwb.addWorkItem(Common.ctx.getBackgroundProcessing());
                     }
                     catch (RejectedExecutionException ree) {
                         instances.remove(bwb);
